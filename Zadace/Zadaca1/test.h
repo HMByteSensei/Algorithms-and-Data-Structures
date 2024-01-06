@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 
+// -----------------------------TEST---------------------------------
 template <typename Tip>
 void generisanjeListe(Lista<Tip> &l) {
     if(l.brojElemenata() != 0) { return; }
@@ -271,5 +272,6 @@ void mainTest(Lista<Tip> &l, Lista<Tip> &k) {
     testOperatoraUglasteZagrade(l);
     std::cout << "\n\tKRAJ TESTIRANJA";
 }
+// -----------------------------KRAJ TEST-a---------------------------------
 
 #endif

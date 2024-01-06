@@ -255,28 +255,11 @@ Tip JednostrukaLista<Tip>::operator[](int indeks) const {
     return temp->element;
 }
 
+
 int main() {
-    JednostrukaLista<int> *l = new JednostrukaLista<int>;
-    JednostrukaLista<int> *p = new JednostrukaLista<int>;
-    mainTest(*l, *p);
+    NizLista<int> *niz_lista = new NizLista<int>;
+    NizLista<int> *prazna_lista_k = new NizLista<int>;
+    mainTest(*niz_lista, *prazna_lista_k);
+
     return 0;
 }
-
-// using namespace std;
-
-// int main() {
-    // JednostrukaLista<int> lista;
-    // for (int i(1); i<=5; i++)
-    //     lista.dodajIspred(i);
-    // {
-    //     JednostrukaLista<int> lista2(lista);
-    //     JednostrukaLista<int> lista3;
-    //     lista3=lista;
-    //     lista.obrisi();
-    //     std::cout << lista2.brojElemenata();
-    //     std::cout << " " << lista3.brojElemenata() << " ";
-    // }
-    // std::cout << lista.brojElemenata();
-                    
-//     return 0;
-// }
