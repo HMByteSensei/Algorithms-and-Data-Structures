@@ -3,14 +3,13 @@
 
 #include <iostream>
 
-//------------------------------KLASA JEDNOSTRUKA LISTA--------------------
 template <typename Tip>
 class JednostrukaLista : public Lista<Tip> {
 private:
     int duzina;
     struct Cvor {
         Tip element; // predavanje 8b
-        Cvor *veza;
+        Cvor *veza = nullptr;
     };
     Cvor *cvor_prije;
     Cvor *pocetak_liste = nullptr;
@@ -21,7 +20,7 @@ private:
     void TestIndeksa(int indeks) const { if(indeks < 0 || indeks >= duzina) throw std::range_error("Indeks je van opsega!"); }
 
 public:
-    JednostrukaLista() : duzina(0) { cvor_prije = nullptr;pocetak_liste = nullptr; tekuci = nullptr; kraj_liste = nullptr; }
+    JednostrukaLista() : duzina(0) { pocetak_liste = nullptr; tekuci = nullptr; kraj_liste = nullptr; }
     ~JednostrukaLista();
 
     JednostrukaLista(const JednostrukaLista &l);
@@ -45,49 +44,59 @@ public:
 
     Tip &operator[](int i) override; // za poziv nad nekonstantnim objektima
     Tip operator[](int i) const override;
+
 };
-//------------------------------KRAJ KLASE JEDNOSTRUKA LISTA--------------------
 
 template <typename Tip>
 JednostrukaLista<Tip>::JednostrukaLista(const JednostrukaLista<Tip> &l) {
     cvor_prije = nullptr;
     duzina = 0;
-    pocetak_liste = kraj_liste = tekuci = nullptr;
     Cvor *temp = l.pocetak_liste;
     while(temp != nullptr) {
         dodajIza(temp->element);
-        temp = temp->veza;
+        temp = temp->sljedeci;
     }
+    pocetak_liste = kraj_liste = tekuci = nullptr;
 }
 
 template <typename Tip>
 JednostrukaLista<Tip> &JednostrukaLista<Tip>::operator=(const JednostrukaLista &l) {
     if(&l == this) return *this; // Samododjela?
-    JednostrukaLista<Tip> temp(l);
-    std::swap(duzina, temp.duzina);
-    std::swap(tekuci, temp.tekuci);
-    std::swap(kraj_liste, temp.kraj_liste);
-    std::swap(cvor_prije, temp.cvor_prije);
-    std::swap(pocetak_liste, temp.pocetak_liste);
+    while(pocetak_liste != nullptr) {
+        tekuci = pocetak_liste;
+        pocetak_liste = pocetak_liste->sljedeci;
+        delete tekuci;
+    }
+    duzina = l.duzina;
+    if(l.duzina == 0) {
+        pocetak_liste = nullptr;
+        tekuci = nullptr;
+        kraj_liste = nullptr;
+    } else {
+        Cvor *tmp = l.pocetak_liste;
+        while(pocetak_liste != nullptr) {
+            dodajIza(tmp->element);
+            sljedeci();
+            tmp = tmp->sljedeci;
+        }
+    }
     return *this;
 }
 
 template <typename Tip>
 JednostrukaLista<Tip>::~JednostrukaLista() {
-    //if(pocetak_liste != nullptr) {
-        Cvor *temp = pocetak_liste;
-        for(Cvor *p; temp != nullptr;) {
-            p = temp;
-            temp = temp->veza;
+    if(pocetak_liste != nullptr) {
+        Cvor *temp = pocetak_liste->veza;
+        for(Cvor *p = pocetak_liste; temp != nullptr; temp = temp->veza) {
             delete p;
-            p = nullptr;
+            p = temp;
         }
-        cvor_prije = nullptr;
+        delete temp;
+        temp = nullptr;
         pocetak_liste = nullptr;
         kraj_liste = nullptr;
         tekuci = nullptr;
-        duzina = 0;
-    //}
+    }
 }
 
 template <typename Tip>
@@ -105,15 +114,11 @@ Tip JednostrukaLista<Tip>::trenutni() const {
 template <typename Tip>
 bool JednostrukaLista<Tip>::prethodni() {
     daLiJePrazna();
-    if(tekuci == pocetak_liste) return false;
+    if((pocetak_liste->veza) == nullptr) return false;
     tekuci = cvor_prije;
     cvor_prije = pocetak_liste;
-    if(cvor_prije != tekuci) {
-        while(cvor_prije->veza != tekuci) {
-            cvor_prije = cvor_prije->veza;
-        }
-    } else {
-        cvor_prije = nullptr;
+    while(cvor_prije->veza != tekuci) {
+        cvor_prije = cvor_prije->veza;
     }
     return true;
 }
@@ -147,54 +152,37 @@ void JednostrukaLista<Tip>::kraj() {
 template <typename Tip>
 void JednostrukaLista<Tip>::obrisi() {
     daLiJePrazna();
-    //if(duzina - 1 == 0) { cvor_prije = nullptr; }
-    if(tekuci == pocetak_liste) {
-        // std::cout << "\nTEKUCI->VEZA = " << cvor_prije;
-        if(duzina == 1) { /// ako imamo samo 1 element
-            delete tekuci;
-            tekuci = nullptr;
-            cvor_prije = nullptr;
-            kraj_liste = nullptr;
-            pocetak_liste = nullptr;
-            duzina--;
-        } else {
-            pocetak_liste = pocetak_liste->veza;
-            delete tekuci;
-            tekuci = pocetak_liste;
-            cvor_prije = nullptr;
-            duzina--;
-        }
-    } else {
-        Cvor *temp = pocetak_liste;
-        while(temp->veza != tekuci) {
-            temp = temp->veza;
-        }
-        cvor_prije = temp;
-        temp->veza = tekuci->veza;
+    if(tekuci == kraj_liste) {
         delete tekuci;
-        tekuci = temp->veza;
-        // OVO
-        // cvor_prije = pocetak_liste;
-        // while(cvor_prije->veza != tekuci) {
-        //     cvor_prije = cvor_prije->veza;
-        // }
-        if(tekuci == nullptr) {
-            //cvor_prije = nullptr; // ovo
-            kraj_liste = tekuci = temp;
+        tekuci = cvor_prije;
+        kraj_liste = tekuci;
+        // azuriranje cvor_prije
+        cvor_prije = pocetak_liste;
+        while(cvor_prije->veza != tekuci) {
+            cvor_prije = cvor_prije->veza;
         }
-        duzina--;
+    } else if( tekuci == pocetak_liste ) {
+        Cvor *temp = tekuci->veza;
+        delete tekuci;
+        tekuci = temp;
+        cvor_prije = nullptr;
+        pocetak_liste = tekuci;
+    } else {
+        Cvor *temp = (tekuci->veza);
+        (cvor_prije->veza) = temp;
+        delete tekuci;
+        tekuci = temp;
     }
+    duzina--;
 }
 
 template <typename Tip>
-void JednostrukaLista<Tip>::dodajIza(const Tip &el) {
+void JednostrukaLista<Tip>::dodajIspred(const Tip &el) {
     if(pocetak_liste == nullptr) {              // tj ako lista nema elemenata
         pocetak_liste = new Cvor{el, nullptr};
-        //pocetak_liste->element = el;
-        //pocetak_liste->veza = nullptr;
         tekuci = pocetak_liste;
         cvor_prije = nullptr;
-        kraj_liste = pocetak_liste;
+        kraj_liste = tekuci;
     } else {
         Cvor *novi = new Cvor{el, tekuci->veza};
         tekuci->veza = novi;
@@ -206,7 +194,7 @@ void JednostrukaLista<Tip>::dodajIza(const Tip &el) {
 }
 
 template <typename Tip>
-void JednostrukaLista<Tip>::dodajIspred(const Tip &el) {
+void JednostrukaLista<Tip>::dodajIza(const Tip &el) {
     if(pocetak_liste == nullptr) { // nemamo elemenata u listi
         pocetak_liste = new Cvor{el, nullptr};
         tekuci = pocetak_liste;
@@ -214,9 +202,8 @@ void JednostrukaLista<Tip>::dodajIspred(const Tip &el) {
         kraj_liste = tekuci;
     } else {
         if(cvor_prije == nullptr) { // ako ima jedan element u listi, pa cvor_prije je nullptr
-            Cvor *novi = new Cvor{el, pocetak_liste};
+            Cvor *novi = new Cvor{el, pocetak_liste->veza};
             cvor_prije = novi;
-            kraj_liste = pocetak_liste;
             pocetak_liste = novi;
         } else {
             Cvor *novi = new Cvor{el, cvor_prije->veza};
@@ -254,29 +241,3 @@ Tip JednostrukaLista<Tip>::operator[](int indeks) const {
     }
     return temp->element;
 }
-
-int main() {
-    JednostrukaLista<int> *l = new JednostrukaLista<int>;
-    JednostrukaLista<int> *p = new JednostrukaLista<int>;
-    mainTest(*l, *p);
-    return 0;
-}
-
-// using namespace std;
-
-// int main() {
-    // JednostrukaLista<int> lista;
-    // for (int i(1); i<=5; i++)
-    //     lista.dodajIspred(i);
-    // {
-    //     JednostrukaLista<int> lista2(lista);
-    //     JednostrukaLista<int> lista3;
-    //     lista3=lista;
-    //     lista.obrisi();
-    //     std::cout << lista2.brojElemenata();
-    //     std::cout << " " << lista3.brojElemenata() << " ";
-    // }
-    // std::cout << lista.brojElemenata();
-                    
-//     return 0;
-// }
