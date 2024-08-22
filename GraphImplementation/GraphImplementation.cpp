@@ -254,16 +254,16 @@ void dfs(UsmjereniGraf<Tip> *ug, std::vector<Cvor<Tip>> &obilazak, Cvor<Tip> c) 
 using namespace std;
 
 int main() {
- UsmjereniGraf<bool> *g = new MatricaGraf<bool>(6);
-    g->dodajGranu(0, 1, 2.5);
-    g->dodajGranu(1, 0, 1.2);
-    g->dodajGranu(1, 2, 0.1);
-    g->dodajGranu(0, 0, 3.14);
-    for (GranaIterator<bool> iter = g->dajGranePocetak();
-         iter != g->dajGraneKraj(); ++iter)
-      cout << "(" << (*iter).dajPolazniCvor().dajRedniBroj() << ","
-           << (*iter).dajDolazniCvor().dajRedniBroj() << ") -> "
-           << (*iter).dajTezinu() << "; ";
+ UsmjereniGraf<std::string> *g = new MatricaGraf<std::string>(4);
+  g->dodajGranu(0, 1, 2.5);
+  g->dodajGranu(1, 2, 1.2);
+  g->dodajGranu(1, 3, 0.1);
+  g->dodajGranu(3, 3, -4.0);
+  g->postaviOznakuGrane(3, 3, "aa");
+  g->dajGranu(0,1).postaviOznaku("bb");
+  for (int i = 0; i < 4; i++)
+    for (int j = 0; j < 4; j++)
+      if (g->postojiGrana(i,j))
+        cout << "(" << i << "," << j << ") -> '" << g->dajOznakuGrane(i, j) << "','" << g->dajGranu(i, j).dajOznaku() << "'; ";
   delete g;
-    return 0;
 }
